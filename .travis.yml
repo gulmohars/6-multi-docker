@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gulmohar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run gulmohar/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t gulmohar/6-multi-client ./client
+  - docker build -t gulmohar/6-multi-server ./server
+  - docker build -t gulmohar/6-multi-worker ./worker
+  - docker build -t gulmohar/6-multi-nginx ./nginx
+
+  #Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push gulmohar/6-multi-client
+  - docker push gulmohar/6-multi-server
+  - docker push gulmohar/6-multi-worker
+  - docker push gulmohar/6-multi-nginx
